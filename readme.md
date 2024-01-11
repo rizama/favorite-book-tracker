@@ -28,5 +28,5 @@ migrate -path db/migrations -database "postgres://username:password@localhost:54
 ### Migration Down
 Go in to project folder
 ```
-migrate -path db/migrations -database "postgres://username:password@localhost:5432/your_database_name?sslmode=disable" up
+migrate -path db/migrations -database "postgres://username:password@localhost:5432/your_database_name?sslmode=disable" down
 ```
