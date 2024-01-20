@@ -7,6 +7,7 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/joho/godotenv"
 	"github.com/rizama/favorite-book-tracker/database"
+	"github.com/rizama/favorite-book-tracker/routes"
 )
 
 type Response struct {
@@ -22,7 +23,7 @@ func main() {
 	database.ConnectDB()
 	app := fiber.New()
 
-	routes(app)
+	setRoutes(app)
 
 	app.Use(cors.New())
 
@@ -33,11 +34,13 @@ func main() {
 	log.Fatal(app.Listen(":3000"))
 }
 
-func routes(app *fiber.App) {
+func setRoutes(app *fiber.App) {
 	app.Get("/", func(c *fiber.Ctx) error {
 		response := Response{
 			Message: "Hello, World!",
 		}
 		return c.JSON(response)
 	})
+
+	app.Post("/addbook", routes.AddBook)
 }
