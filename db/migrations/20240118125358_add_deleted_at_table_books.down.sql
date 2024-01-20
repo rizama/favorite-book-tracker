@@ -1,0 +1,2 @@
+ALTER TABLE books
+DROP COLUMN deleted_at TIMESTAMP(6),
