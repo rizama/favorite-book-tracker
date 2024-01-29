@@ -1,46 +1,31 @@
 package main
 
 import (
+	"embed"
+	"fmt"
 	"log"
 
-	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/middleware/cors"
+	httpLib "net/http"
+	"os"
+
+	"github.com/gofiber/template/html/v2"
 	"github.com/joho/godotenv"
-	"github.com/rizama/favorite-book-tracker/database"
-	"github.com/rizama/favorite-book-tracker/routes"
+	"github.com/rizama/favorite-book-tracker/delivery/http"
+	"github.com/rizama/favorite-book-tracker/domain"
 )
 
-type Response struct {
-	Message string `json:"message"`
-}
+//go:embed resource/*
+//go:embed resource/img/*.png
+var resourcefs embed.FS
 
 func main() {
 	err := godotenv.Load()
 	if err != nil {
-		log.Fatal("Error loading .env file")
+		log.Fatal("failed load env")
 	}
 
-	database.ConnectDB()
-	app := fiber.New()
-
-	setRoutes(app)
-
-	app.Use(cors.New())
-
-	app.Use(func(c *fiber.Ctx) error {
-		return c.SendStatus(404)
-	})
-
-	log.Fatal(app.Listen(":3000"))
-}
-
-func setRoutes(app *fiber.App) {
-	app.Get("/", func(c *fiber.Ctx) error {
-		response := Response{
-			Message: "Hello, World!",
-		}
-		return c.JSON(response)
-	})
-
-	app.Post("/addbook", routes.AddBook)
+	domain := domain.ConstructDomain()
+	engine := html.NewFileSystem(httpLib.FS(resourcefs), ".html")
+	app := http.NewHttpDelivery(domain, engine)
+	app.Listen(fmt.Sprintf(":%s", os.Getenv("PORT_APP")))
 }
