@@ -18,7 +18,7 @@ func NewBookRepository(database *gorm.DB) BookRepository {
 	}
 }
 
-func (bookRepo bookRepositoryImpl) FindBook(book any, condition ...any) error {
+func (bookRepo *bookRepositoryImpl) FindBook(book any, condition ...any) error {
 	// lakukan pencarian data ke database
 	// setelah dapat, simpan hasilnya ke memory address book yang didapat dari parameter
 	// secara langsung itu akan menyimpan ke variable book yang ada di usecase
