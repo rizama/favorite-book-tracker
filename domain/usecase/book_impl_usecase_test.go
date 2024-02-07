@@ -24,13 +24,13 @@ func (m *MockBookRepository) Create(value any) error {
 }
 
 func TestGetBook(t *testing.T) {
-	// Create a mock implementation of repository.BookRepository
+	// Buat sebuah mock implementation dari repository.BookRepository
 	mockRepo := new(MockBookRepository)
 
-	// Create a book usecase with the mock repository
+	// Buat sebuah book usecase dengan mock repository diatas
 	bookUsecase := NewBookUsecase(mockRepo)
 
-	// Mock data to be returned when FindBook is called
+	// Mock data yang akan dikembalikan ketika FIndBook dipanggil
 	mockBooks := []entity.Book{
 		{
 			Title:     "Sam2 Book",
@@ -43,36 +43,34 @@ func TestGetBook(t *testing.T) {
 
 	var dest []entity.Book
 
-	// Set expectations for the FindBook method in the mock repository
+	// Set expectations untuk FindBook method pada mock repository
 	mockRepo.On("FindBook", &dest, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
 		books := args.Get(0).(*[]entity.Book)
 
-		// Copy mockBooks into the provided slice (dereference it)
+		// Copy mockBooks ke slice yang diberikan yaitu variable dest, dest disini pada real casenya adalah book
 		*books = append(*books, mockBooks...)
 	})
 
-	// Call GetBook method
+	// Panggil GetBook method
 	books, err := bookUsecase.GetBook()
 
-	// Assert that the method did not return an error
+	// Assert method tersebut tidak menimbulkan error
 	assert.NoError(t, err)
 
-	// Assert that the FindBook method was called with the correct arguments
+	// Assert FindBook method telah terpanggil dengan argument ya tepat
 	mockRepo.AssertExpectations(t)
 
-	// Add more assertions based on your specific use case
-	// For example, assert the content of the 'books' slice.
-	// Remember to customize these assertions based on your actual implementation.
+	// Tambahkan asserts lainnya
 	assert.NoError(t, err, "Expected no error from GetBook")
 	assert.NotNil(t, books)
 	assert.Len(t, books, 1)
 }
 
 func TestSaveBook(t *testing.T) {
-	// Create a mock implementation of repository.BookRepository
+	// Buat sebuah mock implementation of repository.BookRepository
 	mockRepo := new(MockBookRepository)
 
-	// Create a book usecase with the mock repository
+	// Buat sebuah book usecase with the mock repository
 	bookUsecase := NewBookUsecase(mockRepo)
 
 	// Mock data to be returned when FindBook is called
@@ -84,15 +82,13 @@ func TestSaveBook(t *testing.T) {
 		UpdatedAt: time.Now(),
 	}
 
-	// Set expectations for the Create method in the mock repository
-	mockRepo.On("Create", &mockBook).Return(nil) // You can customize the return value or error based on your scenario
+	// Buat Create method mock
+	mockRepo.On("Create", &mockBook).Return(nil)
 
-	// Call the SaveBook method
+	// Panggil SaveBook method
 	err := bookUsecase.SaveBook(mockBook)
 
-	// Assert that the method did not return an error
+	// Lakukan assert
 	assert.NoError(t, err)
-
-	// Assert that the Create method was called with the correct arguments
 	mockRepo.AssertExpectations(t)
 }

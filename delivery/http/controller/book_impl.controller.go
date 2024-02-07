@@ -4,7 +4,6 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/rizama/favorite-book-tracker/delivery/http/dto/request"
 	"github.com/rizama/favorite-book-tracker/domain"
-	"github.com/rizama/favorite-book-tracker/domain/entity"
 	"github.com/rizama/favorite-book-tracker/shared/utils"
 )
 
@@ -12,7 +11,7 @@ type BookControllerImpl struct {
 	domain domain.Domain // domain disini mengandung usecase + repository
 }
 
-// provider or constructor
+// provider atau constructor
 func NewBookController(domain domain.Domain) BookController {
 	return &BookControllerImpl{
 		domain: domain,
@@ -29,18 +28,8 @@ func (controller *BookControllerImpl) GetBook(ctx *fiber.Ctx) error {
 		return ctx.Status(statuCode).JSON(resp)
 	}
 
-	var books []entity.Book
-	for _, v := range book {
-		data := entity.Book{
-			Title:  v.Title,
-			Author: v.Author,
-			Rating: v.Rating,
-		}
-		books = append(books, data)
-	}
-
 	return ctx.Render("resource/views/home", fiber.Map{
-		"Books": books,
+		"Books": book,
 	})
 }
 
@@ -60,7 +49,7 @@ func (controller *BookControllerImpl) SaveBook(ctx *fiber.Ctx) error {
 	// transform dari format dto ke entity book
 	bookEntity := book.ToBookEntity()
 
-	// send data to book usecase for save the data
+	// send data ke book usecase untuk simpan data
 	if err := controller.domain.BookUsecase.SaveBook(bookEntity); err != nil {
 		resp, statusCode := utils.ConstructorResponseError(fiber.StatusBadRequest, "Failed to save book")
 		return ctx.Status(statusCode).JSON(resp)

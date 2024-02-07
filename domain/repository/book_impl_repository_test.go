@@ -25,7 +25,7 @@ func init() {
 }
 
 func TestFindBook(t *testing.T) {
-	// Create a sample book for testing
+	// buat sebuah sample book for testing
 	book := entity.Book{
 		Title:     "Sam Book",
 		Author:    "Sam Author",
@@ -34,28 +34,28 @@ func TestFindBook(t *testing.T) {
 		UpdatedAt: time.Now(),
 	}
 
-	// Insert the sample book into the test database
+	// Masukan sample book ke database test terlebih dahulu
 	if err := db.Create(&book).Error; err != nil {
 		t.Fatal(err)
 	}
 
-	// Create a book repository
+	// buat sebuah book repository
 	bookRepo := NewBookRepository(db)
 
-	// Call FindBook method
+	// Panggil FindBook method
 	var foundBook entity.Book
 	err2 := bookRepo.FindBook(&foundBook, "title = ?", "Test Book")
-	fmt.Println(foundBook)
-	// Use assertions to check if the book was found successfully
+
+	// Gunakan assertions untuk mengecek pencarian buku berhasil atau tidak
 	assert.NoError(t, err2, "Expected no error from FindBook")
 	assert.Equal(t, "Test Book", foundBook.Title, "Expected book title to be 'Test Book'")
 }
 
 func TestCreateBook(t *testing.T) {
-	// Create a book repository
+	// buat sebuah book repository
 	bookRepo := NewBookRepository(db)
 
-	// Create a sample book for testing
+	// buat sebuah sample book untuk testing
 	book := entity.Book{
 		Title:     "Rizky Book",
 		Author:    "Sam Author",
@@ -64,13 +64,13 @@ func TestCreateBook(t *testing.T) {
 		UpdatedAt: time.Now(),
 	}
 
-	// Call Create method
+	// Panggil Create method
 	err1 := bookRepo.Create(&book)
 	fmt.Println(err1, "*err1")
 	// Use assertions to check if the book was created successfully
 	assert.NoError(t, err1, "Expected no error from Create")
 
-	// Query the database to check if the book was inserted
+	// Gunakan assertions untuk mengecek penyimpanan buku berhasil atau tidak
 	var foundBook entity.Book
 	err := db.First(&foundBook, "title = ?", "Test Book").Error
 	assert.NoError(t, err, "Expected no error when querying the database")
