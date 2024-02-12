@@ -6,6 +6,7 @@ import (
 	"github.com/bytedance/sonic"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/compress"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/template/html/v2"
 
@@ -28,6 +29,7 @@ func NewHttpDelivery(domain domain.Domain, engine *html.Engine) *fiber.App {
 
 	app := fiber.New(config)
 	app.Use(logger.New())
+	app.Use(cors.New())
 	app.Static("/static", "resource")
 	app.Use(compress.New(compress.Config{
 		Level: compress.LevelBestCompression,
