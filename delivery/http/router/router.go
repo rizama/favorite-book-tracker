@@ -11,4 +11,8 @@ func NewRouter(app *fiber.App, domain domain.Domain) {
 
 	app.Get("/", bookController.GetBook)
 	app.Post("/", bookController.SaveBook)
+
+	app.Get("/htmx", bookController.GetBookHtmx)
+	app.Post("/htmx", bookController.SaveBookHtmx)
+	app.Delete("/htmx/:id", bookController.DeleteBookHtmx)
 }

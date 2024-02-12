@@ -41,3 +41,15 @@ func (bookUsecase *bookUsecaseImpl) SaveBook(data entity.Book) error {
 
 	return nil
 }
+
+func (bookUsecase *bookUsecaseImpl) DeleteBook(id int) error {
+	// siapkan variable book
+	var book entity.Book
+
+	// panggil repository untuk menghapus data
+	if err := bookUsecase.bookRepository.Delete(book, id); err != nil {
+		return err
+	}
+
+	return nil
+}

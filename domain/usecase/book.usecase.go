@@ -7,4 +7,5 @@ import (
 type BookUsecase interface {
 	GetBook() ([]entity.Book, error)
 	SaveBook(action entity.Book) error
+	DeleteBook(id int) error
 }

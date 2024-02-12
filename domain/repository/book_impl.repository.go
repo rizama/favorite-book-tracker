@@ -34,12 +34,24 @@ func (bookRepo *bookRepositoryImpl) FindBook(book any, condition ...any) error {
 	return nil
 }
 
-func (bookRepo bookRepositoryImpl) Create(value any) error {
+func (bookRepo *bookRepositoryImpl) Create(value any) error {
 	// store data
 	result := bookRepo.database.Create(value)
 
 	if result.Error != nil {
 		log.Println(fmt.Sprintf("error creating book:: %v", result.Error))
+		return result.Error
+	}
+
+	return nil
+}
+
+func (bookRepo *bookRepositoryImpl) Delete(value any, id int) error {
+	// delete data
+	result := bookRepo.database.Where("id = ?", id).Delete(value)
+
+	if result.Error != nil {
+		log.Println(fmt.Sprintf("error deleting book:: %v", result.Error))
 		return result.Error
 	}
 
