@@ -9,10 +9,18 @@ import (
 func NewRouter(app *fiber.App, domain domain.Domain) {
 	bookController := controller.NewBookController(domain)
 
+	api := app.Group("/api")   // group /api
+	htmx := app.Group("/htmx") // group /api
+
 	app.Get("/", bookController.GetBook)
 	app.Post("/", bookController.SaveBook)
 
-	app.Get("/htmx", bookController.GetBookHtmx)
-	app.Post("/htmx", bookController.SaveBookHtmx)
-	app.Delete("/htmx/:id", bookController.DeleteBookHtmx)
+	htmx.Get("/", bookController.GetBookHtmx)
+	htmx.Post("/", bookController.SaveBookHtmx)
+	htmx.Delete("/:id", bookController.DeleteBookHtmx)
+
+	api.Get("/", bookController.GetBookApi)
+	api.Get("/:id", bookController.GetBookByIdApi)
+	api.Post("/", bookController.SaveBookApi)
+	api.Put("/:id", bookController.UpdateBookApi)
 }

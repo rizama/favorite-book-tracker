@@ -1,9 +1,9 @@
 package repository
 
 import (
-	"fmt"
 	"log"
 
+	"github.com/rizama/favorite-book-tracker/domain/entity"
 	"gorm.io/gorm"
 )
 
@@ -27,31 +27,62 @@ func (bookRepo *bookRepositoryImpl) FindBook(book any, condition ...any) error {
 
 	// jika error, return
 	if result.Error != nil {
-		log.Println(fmt.Sprintf("error fetching book:: %v", result.Error))
+		log.Printf("error fetching book:: %v", result.Error)
 		return result.Error
 	}
 
 	return nil
 }
 
-func (bookRepo *bookRepositoryImpl) Create(value any) error {
+func (bookRepo *bookRepositoryImpl) FindOneBook(book any, id int) error {
+	result := bookRepo.database.Where("id = ?", id).First(book)
+
+	// jika error, return
+	if result.Error != nil {
+		log.Printf("error fetching book:: %v", result.Error)
+		return result.Error
+	}
+
+	return nil
+}
+
+func (bookRepo *bookRepositoryImpl) Create(book any) error {
 	// store data
-	result := bookRepo.database.Create(value)
+	result := bookRepo.database.Create(book)
 
 	if result.Error != nil {
-		log.Println(fmt.Sprintf("error creating book:: %v", result.Error))
+		log.Printf("error creating book:: %v", result.Error)
 		return result.Error
 	}
 
 	return nil
 }
 
-func (bookRepo *bookRepositoryImpl) Delete(value any, id int) error {
+func (bookRepo *bookRepositoryImpl) Delete(book any, id int) error {
 	// delete data
-	result := bookRepo.database.Where("id = ?", id).Delete(value)
+	result := bookRepo.database.Where("id = ?", id).Delete(book)
 
 	if result.Error != nil {
-		log.Println(fmt.Sprintf("error deleting book:: %v", result.Error))
+		log.Printf("error deleting book:: %v", result.Error)
+		return result.Error
+	}
+
+	return nil
+}
+
+func (bookRepo *bookRepositoryImpl) Update(book *entity.Book, id int) error {
+	// update data
+	updateData := entity.Book{
+		Title:     book.Title,
+		Author:    book.Author,
+		Rating:    book.Rating,
+		UpdatedAt: book.UpdatedAt,
+	}
+
+	result := bookRepo.database.Model(&entity.Book{}).Where("id = ?", id).Updates(updateData)
+
+	if result.Error != nil {
+		log.Printf("error updating book:: %v", result.Error)
 		return result.Error
 	}
 

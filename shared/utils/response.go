@@ -10,3 +10,13 @@ func ConstructorResponseError(statuCode int, errorMsg string) (response.Response
 
 	return resp, statuCode
 }
+
+func ConstructorResponseSuccess(statuCode int, msg string, data any) response.ResponseSuccessDTO {
+	resp := response.ResponseSuccessDTO{
+		StatusCode: statuCode,
+		Message:    msg,
+		Data:       data,
+	}
+
+	return resp
+}

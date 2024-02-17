@@ -1,6 +1,10 @@
 package usecase
 
 import (
+	"fmt"
+	"time"
+
+	"github.com/rizama/favorite-book-tracker/delivery/http/dto/request"
 	"github.com/rizama/favorite-book-tracker/domain/entity"
 	"github.com/rizama/favorite-book-tracker/domain/repository"
 )
@@ -32,6 +36,16 @@ func (bookUsecase *bookUsecaseImpl) GetBook() ([]entity.Book, error) {
 	return book, nil
 }
 
+func (bookUsecase *bookUsecaseImpl) GetBookById(id int) (entity.Book, error) {
+	var book entity.Book
+
+	if err := bookUsecase.bookRepository.FindOneBook(&book, id); err != nil {
+		return book, err
+	}
+
+	return book, nil
+}
+
 func (bookUsecase *bookUsecaseImpl) SaveBook(data entity.Book) error {
 
 	// panggil repository untuk menyimpan data
@@ -48,6 +62,33 @@ func (bookUsecase *bookUsecaseImpl) DeleteBook(id int) error {
 
 	// panggil repository untuk menghapus data
 	if err := bookUsecase.bookRepository.Delete(book, id); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (bookUsecase *bookUsecaseImpl) UpdateBook(value request.RequestBookDTO, id int) error {
+	fmt.Println(value.Author, "*value")
+	fmt.Println(id, "*id")
+
+	// get book by id
+	book, err := bookUsecase.GetBookById(id)
+	if err != nil {
+		return err
+	}
+	fmt.Println(book, "*book")
+
+	// Update value book
+	book.Title = value.Title
+	book.Author = value.Author
+	book.Rating = value.Rating
+	book.UpdatedAt = time.Now()
+
+	fmt.Println(book, "*new book")
+
+	// panggil repository untuk update data
+	if err := bookUsecase.bookRepository.Update(&book, id); err != nil {
 		return err
 	}
 

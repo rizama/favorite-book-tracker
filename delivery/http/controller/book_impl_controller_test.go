@@ -1,6 +1,15 @@
 package controller
 
 import (
+	"fmt"
+	"io"
+	"net/http"
+	"net/http/httptest"
+	"testing"
+
+	"github.com/gofiber/fiber/v2"
+	"github.com/rizama/favorite-book-tracker/delivery/http/dto/request"
+	"github.com/rizama/favorite-book-tracker/domain"
 	"github.com/rizama/favorite-book-tracker/domain/entity"
 	"github.com/stretchr/testify/mock"
 )
@@ -20,64 +29,79 @@ func (m *MockBookUsecase) SaveBook(book entity.Book) error {
 	return args.Error(0)
 }
 
-// func TestGetBook(t *testing.T) {
-// 	// Buat a mock instance of BookUsecase
-// 	mockUsecase := new(MockBookUsecase)
+func (m *MockBookUsecase) DeleteBook(id int) error {
+	args := m.Called(id)
+	return args.Error(0)
+}
 
-// 	// Buat sebuah instance dari BookController dengan mock usecase sebelumnya
-// 	controller := NewBookController(domain.Domain{BookUsecase: mockUsecase})
+func (m *MockBookUsecase) GetBookById(id int) (entity.Book, error) {
+	args := m.Called(id)
+	return args.Get(0).(entity.Book), args.Error(1)
+}
 
-// 	// Set ekspektasi untuk GetBook method pada mock usecase
-// 	mockBooks := []entity.Book{{Id: 1, Title: "Test Book 1", Author: "Sam"}}
-// 	mockUsecase.On("GetBook").Return(mockBooks, nil)
+func (m *MockBookUsecase) UpdateBook(book request.RequestBookDTO, id int) error {
+	args := m.Called(id)
+	return args.Error(1)
+}
 
-// 	// Buat sebuah Fiber app untuk testing
-// 	app := fiber.New()
+func TestGetBook(t *testing.T) {
+	// Buat a mock instance of BookUsecase
+	mockUsecase := new(MockBookUsecase)
 
-// 	// Buat sebuah request
-// 	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	// Buat sebuah instance dari BookController dengan mock usecase sebelumnya
+	controller := NewBookController(domain.Domain{BookUsecase: mockUsecase})
 
-// 	// Buat Route ke handler dari app fiber
-// 	app.Get("/", controller.GetBook)
+	// Set ekspektasi untuk GetBook method pada mock usecase
+	mockBooks := []entity.Book{{Id: 1, Title: "Test Book 1", Author: "Sam"}}
+	mockUsecase.On("GetBook").Return(mockBooks, nil)
 
-// 	// Lakukan Testing http
-// 	resp, _ := app.Test(req)
+	// Buat sebuah Fiber app untuk testing
+	app := fiber.New()
 
-// 	// Lakukan sesuatu dari results:
-// 	if resp.StatusCode == fiber.StatusOK {
-// 		body, _ := io.ReadAll(resp.Body)
-// 		fmt.Println(string(body)) // => Hello, World!
-// 	}
-// 	// assert.Equal(t, http.StatusOK, resp.StatusCode)
-// }
+	// Buat sebuah request
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
 
-// func TestSaveBook(t *testing.T) {
-// 	// Buat a mock instance of BookUsecase
-// 	mockUsecase := new(MockBookUsecase)
+	// Buat Route ke handler dari app fiber
+	app.Get("/", controller.GetBook)
 
-// 	// Buat sebuah instance dari BookController dengan mock usecase sebelumnya
-// 	controller := NewBookController(domain.Domain{BookUsecase: mockUsecase})
+	// Lakukan Testing http
+	resp, _ := app.Test(req)
 
-// 	// Set ekspektasi untuk GetBook method pada mock usecase
-// 	mockUsecase.On("SaveBook", mock.Anything).Return(nil)
+	// Lakukan sesuatu dari results:
+	if resp.StatusCode == fiber.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		fmt.Println(string(body)) // => Hello, World!
+	}
+	// assert.Equal(t, http.StatusOK, resp.StatusCode)
+}
 
-// 	// Buat sebuah Fiber app untuk testing
-// 	app := fiber.New()
+func TestSaveBook(t *testing.T) {
+	// Buat a mock instance of BookUsecase
+	mockUsecase := new(MockBookUsecase)
 
-// 	// Buat sebuah request
-// 	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	// Buat sebuah instance dari BookController dengan mock usecase sebelumnya
+	controller := NewBookController(domain.Domain{BookUsecase: mockUsecase})
 
-// 	// Buat Route ke handler dari app fiber
-// 	app.Get("/", controller.GetBook)
+	// Set ekspektasi untuk GetBook method pada mock usecase
+	mockUsecase.On("SaveBook", mock.Anything).Return(nil)
 
-// 	// Lakukan Testing http
-// 	resp, _ := app.Test(req)
+	// Buat sebuah Fiber app untuk testing
+	app := fiber.New()
 
-// 	// Lakukan sesuatu dari results:
-// 	app.Post("/", controller.SaveBook)
-// 	if resp.StatusCode == fiber.StatusOK {
-// 		body, _ := io.ReadAll(resp.Body)
-// 		fmt.Println(string(body)) // => Hello, World!
-// 	}
-// 	// assert.Equal(t, http.StatusOK, resp.StatusCode)
-// }
+	// Buat sebuah request
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+
+	// Buat Route ke handler dari app fiber
+	app.Get("/", controller.GetBook)
+
+	// Lakukan Testing http
+	resp, _ := app.Test(req)
+
+	// Lakukan sesuatu dari results:
+	app.Post("/", controller.SaveBook)
+	if resp.StatusCode == fiber.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		fmt.Println(string(body)) // => Hello, World!
+	}
+	// assert.Equal(t, http.StatusOK, resp.StatusCode)
+}
