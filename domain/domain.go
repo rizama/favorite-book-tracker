@@ -14,7 +14,6 @@ func ConstructDomain() Domain {
 	postgresConn := infrastructure.NewPostgresConnection()
 
 	bookRepository := repository.NewBookRepository(postgresConn)
-
 	bookUsecase := usecase.NewBookUsecase(bookRepository)
 
 	return Domain{

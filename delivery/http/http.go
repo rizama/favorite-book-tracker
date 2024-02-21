@@ -35,8 +35,8 @@ func NewHttpDelivery(domain domain.Domain, engine *html.Engine) *fiber.App {
 		Level: compress.LevelBestCompression,
 	}))
 
-	// web route
-	router.NewRouter(app, domain)
+	// book route
+	router.BookRouter(app, domain)
 
 	return app
 }
