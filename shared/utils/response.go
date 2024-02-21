@@ -1,8 +1,12 @@
 package utils
 
-import "github.com/rizama/favorite-book-tracker/delivery/http/dto/response"
+import (
+	"fmt"
 
-func ConstructorResponseError(statuCode int, errorMsg string) (response.ResponseErrorDTO, int) {
+	"github.com/rizama/favorite-book-tracker/delivery/http/dto/response"
+)
+
+func ResponseError(statuCode int, errorMsg string) (response.ResponseErrorDTO, int) {
 	resp := response.ResponseErrorDTO{
 		StatusCode: statuCode,
 		Error:      errorMsg,
@@ -11,7 +15,7 @@ func ConstructorResponseError(statuCode int, errorMsg string) (response.Response
 	return resp, statuCode
 }
 
-func ConstructorResponseSuccess(statuCode int, msg string, data any) response.ResponseSuccessDTO {
+func ResponseSuccess(statuCode int, msg string, data any) response.ResponseSuccessDTO {
 	resp := response.ResponseSuccessDTO{
 		StatusCode: statuCode,
 		Message:    msg,
@@ -19,4 +23,25 @@ func ConstructorResponseSuccess(statuCode int, msg string, data any) response.Re
 	}
 
 	return resp
+}
+
+type ErrorResponseMsg struct {
+	Error       bool
+	FailedField string
+	Tag         string
+	Value       interface{}
+}
+
+func ErrValidationMsg(errs []ErrorResponseMsg) []string {
+	errMsgs := make([]string, 0)
+	for _, err := range errs {
+		errMsgs = append(errMsgs, fmt.Sprintf(
+			"[%s]: '%v' -> Needs to implement '%s'",
+			err.FailedField,
+			err.Value,
+			err.Tag,
+		))
+	}
+
+	return errMsgs
 }

@@ -7,16 +7,16 @@ import (
 )
 
 type RequestBookDTO struct {
-	Title  string `json:"title"`
-	Author string `json:"author"`
-	Rating int8   `json:"rating"`
+	Title  string `validate:"required,min=5,max=20"`
+	Author string `validate:"required,min=5,max=20"`
+	Rating int8   `validate:"required,gte=1,lte=5"`
 }
 
-func (this RequestBookDTO) ToBookEntity() entity.Book {
+func (book RequestBookDTO) ToBookEntity() entity.Book {
 	return entity.Book{
-		Title:     this.Title,
-		Author:    this.Author,
-		Rating:    this.Rating,
+		Title:     book.Title,
+		Author:    book.Author,
+		Rating:    book.Rating,
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
 		DeletedAt: nil,

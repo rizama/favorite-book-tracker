@@ -3,7 +3,9 @@ package controller
 import (
 	"fmt"
 	"strconv"
+	"strings"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
 	"github.com/rizama/favorite-book-tracker/delivery/http/dto/request"
 	"github.com/rizama/favorite-book-tracker/domain"
@@ -11,14 +13,36 @@ import (
 )
 
 type BookControllerImpl struct {
-	domain domain.Domain // domain disini mengandung usecase + repository
+	domain   domain.Domain // domain disini mengandung usecase + repository
+	Validate *validator.Validate
 }
 
 // provider atau constructor
-func NewBookController(domain domain.Domain) BookController {
+func NewBookController(domain domain.Domain, validate *validator.Validate) BookController {
 	return &BookControllerImpl{
-		domain: domain,
+		domain:   domain,
+		Validate: validate,
 	}
+}
+
+func (v BookControllerImpl) CheckValidation(data interface{}) []utils.ErrorResponseMsg {
+	validationErrors := []utils.ErrorResponseMsg{}
+
+	errs := v.Validate.Struct(data)
+	if errs != nil {
+		for _, err := range errs.(validator.ValidationErrors) {
+			var elem utils.ErrorResponseMsg
+
+			elem.FailedField = err.Field()
+			elem.Tag = err.Tag()
+			elem.Value = err.Value()
+			elem.Error = true
+
+			validationErrors = append(validationErrors, elem)
+		}
+	}
+
+	return validationErrors
 }
 
 // Method BookController
@@ -29,7 +53,7 @@ func (controller *BookControllerImpl) GetBook(ctx *fiber.Ctx) error {
 	book, err := controller.domain.BookUsecase.GetBook()
 
 	if err != nil {
-		resp, statuCode := utils.ConstructorResponseError(fiber.StatusBadRequest, "Failed ti fetch book")
+		resp, statuCode := utils.ResponseError(fiber.StatusBadRequest, "Failed ti fetch book")
 		return ctx.Status(statuCode).JSON(resp)
 	}
 
@@ -46,7 +70,7 @@ func (controller *BookControllerImpl) SaveBook(ctx *fiber.Ctx) error {
 	if err := ctx.BodyParser(&book); err != nil {
 
 		// jika payload tidak sesuai dto maka balikan error
-		resp, statusCode := utils.ConstructorResponseError(fiber.StatusBadRequest, "Invalid request body")
+		resp, statusCode := utils.ResponseError(fiber.StatusBadRequest, "Invalid request body")
 		return ctx.Status(statusCode).JSON(resp)
 	}
 
@@ -55,7 +79,7 @@ func (controller *BookControllerImpl) SaveBook(ctx *fiber.Ctx) error {
 
 	// send data ke book usecase untuk simpan data
 	if err := controller.domain.BookUsecase.SaveBook(bookEntity); err != nil {
-		resp, statusCode := utils.ConstructorResponseError(fiber.StatusBadRequest, "Failed to save book")
+		resp, statusCode := utils.ResponseError(fiber.StatusBadRequest, "Failed to save book")
 		return ctx.Status(statusCode).JSON(resp)
 	}
 
@@ -67,7 +91,7 @@ func (controller *BookControllerImpl) GetBookHtmx(ctx *fiber.Ctx) error {
 	book, err := controller.domain.BookUsecase.GetBook()
 
 	if err != nil {
-		resp, statuCode := utils.ConstructorResponseError(fiber.StatusBadRequest, "Failed to fetch book")
+		resp, statuCode := utils.ResponseError(fiber.StatusBadRequest, "Failed to fetch book")
 		return ctx.Status(statuCode).JSON(resp)
 	}
 
@@ -84,7 +108,7 @@ func (controller *BookControllerImpl) SaveBookHtmx(ctx *fiber.Ctx) error {
 	var book request.RequestBookDTO
 
 	if err := ctx.BodyParser(&book); err != nil {
-		resp, statusCode := utils.ConstructorResponseError(fiber.StatusBadRequest, "Invalid request body")
+		resp, statusCode := utils.ResponseError(fiber.StatusBadRequest, "Invalid request body")
 		return ctx.Status(statusCode).JSON(resp)
 	}
 
@@ -95,7 +119,7 @@ func (controller *BookControllerImpl) SaveBookHtmx(ctx *fiber.Ctx) error {
 	bookEntity := book.ToBookEntity()
 
 	if err := controller.domain.BookUsecase.SaveBook(bookEntity); err != nil {
-		resp, statusCode := utils.ConstructorResponseError(fiber.StatusBadRequest, "Failed to save book")
+		resp, statusCode := utils.ResponseError(fiber.StatusBadRequest, "Failed to save book")
 		return ctx.Status(statusCode).JSON(resp)
 	}
 
@@ -107,12 +131,12 @@ func (controller *BookControllerImpl) DeleteBookHtmx(ctx *fiber.Ctx) error {
 
 	id, err := strconv.Atoi(Pid)
 	if err != nil {
-		resp, statusCode := utils.ConstructorResponseError(fiber.StatusInternalServerError, "Failed to delete book")
+		resp, statusCode := utils.ResponseError(fiber.StatusInternalServerError, "Failed to delete book")
 		return ctx.Status(statusCode).JSON(resp)
 	}
 
 	if err := controller.domain.BookUsecase.DeleteBook(id); err != nil {
-		resp, statusCode := utils.ConstructorResponseError(fiber.StatusBadRequest, "Failed to delete book")
+		resp, statusCode := utils.ResponseError(fiber.StatusBadRequest, "Failed to delete book")
 		return ctx.Status(statusCode).JSON(resp)
 	}
 
@@ -124,11 +148,11 @@ func (controller *BookControllerImpl) GetBookApi(ctx *fiber.Ctx) error {
 	book, err := controller.domain.BookUsecase.GetBook()
 
 	if err != nil {
-		resp, statuCode := utils.ConstructorResponseError(fiber.StatusBadRequest, "Failed to fetch book")
+		resp, statuCode := utils.ResponseError(fiber.StatusBadRequest, "Failed to fetch book")
 		return ctx.Status(statuCode).JSON(resp)
 	}
 
-	resp := utils.ConstructorResponseSuccess(fiber.StatusOK, "success", book)
+	resp := utils.ResponseSuccess(fiber.StatusOK, "success", book)
 
 	return ctx.JSON(resp)
 }
@@ -138,17 +162,17 @@ func (controller *BookControllerImpl) GetBookByIdApi(ctx *fiber.Ctx) error {
 
 	idParsed, err := strconv.Atoi(id)
 	if err != nil {
-		resp, statuCode := utils.ConstructorResponseError(fiber.StatusBadRequest, err.Error())
+		resp, statuCode := utils.ResponseError(fiber.StatusBadRequest, err.Error())
 		return ctx.Status(statuCode).JSON(resp)
 	}
 
 	book, err2 := controller.domain.BookUsecase.GetBookById(idParsed)
 	if err2 != nil {
-		resp, statuCode := utils.ConstructorResponseError(fiber.StatusBadRequest, err2.Error())
+		resp, statuCode := utils.ResponseError(fiber.StatusBadRequest, err2.Error())
 		return ctx.Status(statuCode).JSON(resp)
 	}
 
-	resp := utils.ConstructorResponseSuccess(fiber.StatusOK, "success", book)
+	resp := utils.ResponseSuccess(fiber.StatusOK, "success", book)
 
 	return ctx.JSON(resp)
 }
@@ -157,18 +181,25 @@ func (controller *BookControllerImpl) SaveBookApi(ctx *fiber.Ctx) error {
 	var book request.RequestBookDTO
 
 	if err := ctx.BodyParser(&book); err != nil {
-		resp, statusCode := utils.ConstructorResponseError(fiber.StatusBadRequest, "Invalid request body")
+		resp, statusCode := utils.ResponseError(fiber.StatusBadRequest, "Invalid request body")
+		return ctx.Status(statusCode).JSON(resp)
+	}
+
+	// Validation
+	if errs := controller.CheckValidation(book); len(errs) > 0 && errs[0].Error {
+		errMsgs := utils.ErrValidationMsg(errs)
+		resp, statusCode := utils.ResponseError(fiber.StatusBadRequest, strings.Join(errMsgs, " | "))
 		return ctx.Status(statusCode).JSON(resp)
 	}
 
 	bookEntity := book.ToBookEntity()
 
 	if err := controller.domain.BookUsecase.SaveBook(bookEntity); err != nil {
-		resp, statusCode := utils.ConstructorResponseError(fiber.StatusBadRequest, "Failed to save book")
+		resp, statusCode := utils.ResponseError(fiber.StatusBadRequest, "Failed to save book")
 		return ctx.Status(statusCode).JSON(resp)
 	}
 
-	resp := utils.ConstructorResponseSuccess(fiber.StatusCreated, "success", book)
+	resp := utils.ResponseSuccess(fiber.StatusCreated, "success", book)
 	return ctx.Status(fiber.StatusCreated).JSON(resp)
 }
 
@@ -176,23 +207,30 @@ func (controller *BookControllerImpl) UpdateBookApi(ctx *fiber.Ctx) error {
 	id := ctx.Params("id")
 	idParsed, err := strconv.Atoi(id)
 	if err != nil {
-		resp, statuCode := utils.ConstructorResponseError(fiber.StatusBadRequest, err.Error())
+		resp, statuCode := utils.ResponseError(fiber.StatusBadRequest, err.Error())
 		return ctx.Status(statuCode).JSON(resp)
 	}
 
 	var book request.RequestBookDTO
 
 	if err := ctx.BodyParser(&book); err != nil {
-		resp, statusCode := utils.ConstructorResponseError(fiber.StatusBadRequest, "Invalid request body")
+		resp, statusCode := utils.ResponseError(fiber.StatusBadRequest, "Invalid request body")
+		return ctx.Status(statusCode).JSON(resp)
+	}
+
+	// Validation
+	if errs := controller.CheckValidation(book); len(errs) > 0 && errs[0].Error {
+		errMsgs := utils.ErrValidationMsg(errs)
+		resp, statusCode := utils.ResponseError(fiber.StatusBadRequest, strings.Join(errMsgs, " | "))
 		return ctx.Status(statusCode).JSON(resp)
 	}
 
 	err2 := controller.domain.BookUsecase.UpdateBook(book, idParsed)
 	if err2 != nil {
-		resp, statusCode := utils.ConstructorResponseError(fiber.StatusBadRequest, "Failed to update book")
+		resp, statusCode := utils.ResponseError(fiber.StatusBadRequest, err2.Error())
 		return ctx.Status(statusCode).JSON(resp)
 	}
 
-	resp := utils.ConstructorResponseSuccess(fiber.StatusOK, "success", book)
+	resp := utils.ResponseSuccess(fiber.StatusOK, "success", book)
 	return ctx.Status(fiber.StatusCreated).JSON(resp)
 }

@@ -7,6 +7,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
 	"github.com/rizama/favorite-book-tracker/delivery/http/dto/request"
 	"github.com/rizama/favorite-book-tracker/domain"
@@ -46,10 +47,11 @@ func (m *MockBookUsecase) UpdateBook(book request.RequestBookDTO, id int) error 
 
 func TestGetBook(t *testing.T) {
 	// Buat a mock instance of BookUsecase
+	validate := validator.New()
 	mockUsecase := new(MockBookUsecase)
 
 	// Buat sebuah instance dari BookController dengan mock usecase sebelumnya
-	controller := NewBookController(domain.Domain{BookUsecase: mockUsecase})
+	controller := NewBookController(domain.Domain{BookUsecase: mockUsecase}, validate)
 
 	// Set ekspektasi untuk GetBook method pada mock usecase
 	mockBooks := []entity.Book{{Id: 1, Title: "Test Book 1", Author: "Sam"}}
@@ -76,11 +78,12 @@ func TestGetBook(t *testing.T) {
 }
 
 func TestSaveBook(t *testing.T) {
+	validate := validator.New()
 	// Buat a mock instance of BookUsecase
 	mockUsecase := new(MockBookUsecase)
 
 	// Buat sebuah instance dari BookController dengan mock usecase sebelumnya
-	controller := NewBookController(domain.Domain{BookUsecase: mockUsecase})
+	controller := NewBookController(domain.Domain{BookUsecase: mockUsecase}, validate)
 
 	// Set ekspektasi untuk GetBook method pada mock usecase
 	mockUsecase.On("SaveBook", mock.Anything).Return(nil)
